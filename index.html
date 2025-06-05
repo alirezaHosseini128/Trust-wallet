@@ -1,0 +1,47 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trust Wallet Payment</title>
+</head>
+<body>
+  <h1>اتصال به Trust Wallet و پرداخت</h1>
+  <button onclick="connectWallet()">اتصال کیف پول</button>
+  <button onclick="sendTransaction()">پرداخت</button>
+  <p id="status"></p>
+
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <script>
+    let provider;
+    let signer;
+    const receiver = "0x000000000000000000000000000000000000dead"; // آدرس گیرنده تستی
+
+    async function connectWallet() {
+      if (window.ethereum) {
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        signer = provider.getSigner();
+        document.getElementById("status").innerText = "کیف پول متصل شد";
+      } else {
+        alert("لطفاً Trust Wallet یا Metamask نصب کنید.");
+      }
+    }
+
+    async function sendTransaction() {
+      if (!signer) return alert("لطفاً ابتدا کیف پول را متصل کنید.");
+      const balance = await provider.getBalance(await signer.getAddress());
+      const eth = ethers.utils.formatEther(balance);
+      if (parseFloat(eth) < 0.001) {
+        return alert("موجودی کافی نیست (حداقل 0.001 ETH لازم است).");
+      }
+      const tx = await signer.sendTransaction({
+        to: receiver,
+        value: ethers.utils.parseEther("0.001")
+      });
+      document.getElementById("status").innerText = "تراکنش ارسال شد: " + tx.hash;
+    }
+  </script>
+</body>
+</html>
